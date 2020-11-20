@@ -1,12 +1,10 @@
 const mysql = require('mysql');
-const {
-    resolve
-} = require('path');
+
 const con = mysql.createConnection({
     host: "localhost",
     port: 3336,
     user: "root",
-    password: "",
+    password: "dENvAU06@)@)",
     database: "sem4"
 });
 

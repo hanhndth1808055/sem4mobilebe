@@ -4,7 +4,8 @@ const cors = require("cors");
 const bodyParser = require("body-parser");
 
 //routes
-// const loginRoute = require("./routes/account/login");
+const createStudent = require("./routes/student/create-student");
+const updateStudent = require("./routes/student/update-student");
 
 var corsOptions = {
   origin: "*"
@@ -16,6 +17,9 @@ app.use(cors(corsOptions));
 app.use(bodyParser.json());
 //parse requests of content-type - application/x-www-form-urlencoded
 app.use(bodyParser.urlencoded({extended: true}));
+
+app.use('/create-student', createStudent);
+app.use('/update-student', updateStudent);
 
 app.get("/", (req, res) => {
   res.json('Welcome to FATSM Back-end');
