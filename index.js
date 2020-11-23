@@ -6,7 +6,7 @@ const bodyParser = require("body-parser");
 //routes
 const createStudent = require("./routes/student/create-student");
 const updateStudent = require("./routes/student/update-student");
-
+const updateStudentFace = require("./routes/student/update-student-face");
 var corsOptions = {
   origin: "*"
 }
@@ -20,6 +20,8 @@ app.use(bodyParser.urlencoded({extended: true}));
 
 app.use('/create-student', createStudent);
 app.use('/update-student', updateStudent);
+
+app.use('/update-student-face', updateStudentFace);
 
 app.get("/", (req, res) => {
   res.json('Welcome to FATSM Back-end');

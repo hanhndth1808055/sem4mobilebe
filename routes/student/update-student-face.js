@@ -17,7 +17,6 @@ router.post('/:id', (req, res) => {
     let converted = converterObjectToRecord.convertForUpdate(information);
 
     updateStudent.update("'"+id+"'", converted).then(result => {
-        // console.log(result);
         if(result.affectedRows && result.affectedRows == 1) {
             return res.json(response(200, "Update Successfully!", {
                 id: id
@@ -26,6 +25,6 @@ router.post('/:id', (req, res) => {
     }).catch(err => {
         return res.json(response(500, "Errors", [err]));
     });
-})
+});
 
 module.exports = router;

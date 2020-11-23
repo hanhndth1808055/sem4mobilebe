@@ -13,7 +13,7 @@ router.post('/', (req, res) => {
     let information = req.body;
 // console.log(information);
     let converted = converterObjectToRecord.converter(information);
-    console.log(converted);
+    // console.log(converted);
     createStudent.create(converted.schema, converted.record).then(async result => {
         if(result.affectedRows === 1) {
             try {

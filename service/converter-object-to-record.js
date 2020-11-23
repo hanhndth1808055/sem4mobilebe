@@ -6,7 +6,7 @@ function converter(information) {
 
     for(let property of objectToArray) {
         keys.push(property[0]);
-        console.log(typeof(property[1]));
+        // console.log(typeof(property[1]));
         if(Number.isInteger(property[1])) {
             values.push(Number.parseInt(property[1]));
         }else {
