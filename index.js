@@ -7,6 +7,7 @@ const bodyParser = require("body-parser");
 const createStudent = require("./routes/student/create-student");
 const updateStudent = require("./routes/student/update-student");
 const updateStudentFace = require("./routes/student/update-student-face");
+
 var corsOptions = {
   origin: "*"
 }
