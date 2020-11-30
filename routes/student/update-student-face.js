@@ -2,7 +2,7 @@ const express = require("express");
 const router = express.Router();
 const updateStudent = require("../../connect-db/students/select");
 const fileHelpers = require("../../service/fileHelpers");
-
+const faceAiService = require("../../service/face-ai-service");
 //service
 const converterObjectToRecord = require("../../service/converter-object-to-record");
 //model
@@ -18,6 +18,7 @@ router.post('/:id', async (req, res) => {
     for (const file of req.files.file) {
         await fileHelpers.setFriendPictures("Data", id, file);
     }
+    await faceAiService.createSinglePerson("car1", id, "Data");
     // images.forEach(async file => {
         
     // });

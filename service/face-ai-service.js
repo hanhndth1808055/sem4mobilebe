@@ -92,11 +92,39 @@ async function showAllPersonGroup() {
     });
 }
 
+async function createSinglePerson(personGroupId, friend, fatherDirectory) {
+    if(!fatherDirectory || fatherDirectory == '') fatherDirectory = 'Data';
+    let personGroupArr = [];
+            personGroupArr['personGroupId'] = personGroupId;
+            personGroupArr['people'] = [];
+            personGroupArr['people'][friend] = [];
+    return await faceHelpers.createPerson(personGroupId, friend).then(async result => {
+        // console.log("Result PersonId:");
+        // console.log(result);
+        personGroupArr['people'][friend]['personId'] = result;
+        personGroupArr['people'][friend]['faceIds'] = [];
+        const personId = result;
+        let faceIdArr = [];
+        console.log(`Created personId: ${result} for person: ${friend}`);
+        const friendPictures = fileHelpers.getFriendPictures(fatherDirectory, friend);
+        return await friendPictures.forEach(async friendPicture => {
+            const friendFaceFileName = __dirname + '/' + fatherDirectory + '/' + friend + '/' + friendPicture;
+            return await faceHelpers.addPersonFace(friendFaceFileName, personId, personGroupId).then(async result => {
+                personGroupArr['people'][friend]['faceIds'].push(result);
+                console.log(`For personId: ${result} person: ${friend} added face: ${friendPicture} got persistedFaceId: ${result}`);
+                faceIdArr.concat(result);
+                console.log(personGroupArr);
+                return result;
+            });
+        });
+    });
+}
 module.exports = {
     detectFaceWithAttributes: detectFaceWithAttributes,
     createPersonGroup: createPersonGroup,
     trainPersonGroup: trainPersonGroup,
     detectFace: detectFace,
     deletePersonGroup: deletePersonGroup,
-    showAllPersonGroup: showAllPersonGroup
+    showAllPersonGroup: showAllPersonGroup,
+    createSinglePerson: createSinglePerson
 }
