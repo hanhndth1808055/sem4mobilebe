@@ -1,32 +1,44 @@
-"use strict";
+// "use strict";
 // Object.defineProperty(exports, "__esModule", { value: true });
 const fileHelpers = require("./fileHelpers");
 const faceHelpers = require("./FaceHelpers");
 
-function detectFaceWithAttributes(inputImgPath) {
-    faceHelpers.detectFaceWithAttributes(inputImgPath)
-    .then(results => {
-    console.log(results);
-});
+async function detectFaceWithAttributes(inputImgPath) {
+    await faceHelpers.detectFaceWithAttributes(inputImgPath)
+        .then(results => {
+            console.log(results);
+        });
 }
 
 // const personGroupId = 'myfriends';
 
 // Step 1: create personGroup here
-function createPersonGroup(personGroupId) {
-    faceHelpers.createPersonGroup(personGroupId).then(result => {
+async function createPersonGroup(personGroupId, fatherDirectory) {
+    if(!fatherDirectory || fatherDirectory == '') fatherDirectory = 'Data';
+    return await faceHelpers.createPersonGroup(personGroupId).then(async result => {
         if (result === personGroupId) {
             console.log('person group created');
-            const friends = fileHelpers.getFriends('Data');
-            friends.forEach(friend => {
-                faceHelpers.createPerson(personGroupId, friend).then(result => {
+            const friends = fileHelpers.getFriends(fatherDirectory);
+            let personGroupArr = [];
+            personGroupArr['personGroupId'] = personGroupId;
+            personGroupArr['people'] = [];
+            await friends.forEach(async friend => {
+                personGroupArr['people'][friend] = [];
+                return await faceHelpers.createPerson(personGroupId, friend).then(async result => {
+                    personGroupArr['people'][friend]['personId'] = result;
+                    personGroupArr['people'][friend]['faceIds'] = [];
                     const personId = result;
+                    let faceIdArr = [];
                     console.log(`Created personId: ${result} for person: ${friend}`);
-                    const friendPictures = fileHelpers.getFriendPictures(friend);
-                    friendPictures.forEach(friendPicture => {
-                        const friendFaceFileName = __dirname + '/Data/' + friend + '/' + friendPicture;
-                        faceHelpers.addPersonFace(friendFaceFileName, personId, personGroupId).then(result => {
+                    const friendPictures = fileHelpers.getFriendPictures(fatherDirectory, friend);
+                    return await friendPictures.forEach(async friendPicture => {
+                        const friendFaceFileName = __dirname + '/' + fatherDirectory + '/' + friend + '/' + friendPicture;
+                        return await faceHelpers.addPersonFace(friendFaceFileName, personId, personGroupId).then(async result => {
+                            personGroupArr['people'][friend]['faceIds'].push(result);
                             console.log(`For personId: ${result} person: ${friend} added face: ${friendPicture} got persistedFaceId: ${result}`);
+                            faceIdArr.concat(result);
+                            console.log(personGroupArr);
+                            return result;
                         });
                     });
                 });
@@ -35,15 +47,17 @@ function createPersonGroup(personGroupId) {
     });
 }
 // // Step 2: Train person group
-function trainPersonGroup(personGroupId) {
-    faceHelpers.trainPersonGroup(personGroupId).then(result => {
-        if (result)
+async function trainPersonGroup(personGroupId) {
+    return await faceHelpers.trainPersonGroup(personGroupId).then(result => {
+        if (result) {
             console.log('personGroup trained');
+            return "Trained OKKKK";
+        }
     });
 }
 // // Step 3: Detecting and identifying a person
-function detectFace(personGroupId, inputImgPath) {
-    faceHelpers.detectFace(inputImgPath).then(faceId => {
+async function detectFace(personGroupId, inputImgPath) {
+    await faceHelpers.detectFace(inputImgPath).then(faceId => {
         faceHelpers.identifyPerson(personGroupId, faceId).then(result => {
             console.log('Input recognized as: ' + result);
         });
@@ -51,26 +65,28 @@ function detectFace(personGroupId, inputImgPath) {
 }
 
 // Step 4: Delete the group
-function deletePersonGroup(personGroupId) {
-    faceHelpers.deletePersonGroup(personGroupId).then(result => {
+async function deletePersonGroup(personGroupId) {
+    await faceHelpers.deletePersonGroup(personGroupId).then(result => {
         if (result)
             console.log('person group deleted');
         else
-            console.log('error deleting theg group');
+            console.log('error deleting the group');
     });
-    
+
 }
 
-function showAllPersonGroup() {
-    faceHelpers.showAllPersonGroup().then(result => {
-        if (result == [])
-        console.log('No available person group');
-    else if (result.length > 0)
-        console.log('Person group exist');
-        else 
-        console.log('Error');
-
-        return result;
+async function showAllPersonGroup() {
+    return await faceHelpers.showAllPersonGroup().then(result => {
+        if (result == "[]") {
+            console.log('No available person group');
+            return result;
+        } else if (result.length > 2){
+            console.log('Person group exist');
+            return result;
+        }else{
+            console.log('Error');
+            return result;
+        }
     });
 }
 

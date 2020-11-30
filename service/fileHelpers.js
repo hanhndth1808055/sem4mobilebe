@@ -14,9 +14,9 @@ function getFriends(dirName) {
     return toReturn;
 }
 exports.getFriends = getFriends;
-function getFriendPictures(friendName) {
+function getFriendPictures(fatherDirectory, friendName) {
     let toReturn = [];
-    const fullDirName = __dirname + '/Data/' + friendName;
+    const fullDirName = __dirname + '/'+fatherDirectory+'/' + friendName;
     let results = fs.readdirSync(fullDirName);
     results.forEach(result => {
         if (result.endsWith('jpg')) {
