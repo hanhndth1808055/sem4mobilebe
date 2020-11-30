@@ -2,6 +2,7 @@ const express = require("express");
 const app = express();
 const cors = require("cors");
 const bodyParser = require("body-parser");
+const fileUpload = require('express-fileupload');
 
 //routes
 const createStudent = require("./routes/student/create-student");
@@ -11,6 +12,11 @@ const updateStudentFace = require("./routes/student/update-student-face");
 var corsOptions = {
   origin: "*"
 }
+
+// enable files upload
+app.use(fileUpload({
+  createParentPath: true
+}));
 
 app.use(cors(corsOptions));
 

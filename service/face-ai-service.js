@@ -25,13 +25,15 @@ async function createPersonGroup(personGroupId, fatherDirectory) {
             await friends.forEach(async friend => {
                 personGroupArr['people'][friend] = [];
                 return await faceHelpers.createPerson(personGroupId, friend).then(async result => {
+                    // console.log("Result PersonId:");
+                    // console.log(result);
                     personGroupArr['people'][friend]['personId'] = result;
                     personGroupArr['people'][friend]['faceIds'] = [];
                     const personId = result;
                     let faceIdArr = [];
                     console.log(`Created personId: ${result} for person: ${friend}`);
                     const friendPictures = fileHelpers.getFriendPictures(fatherDirectory, friend);
-                    return await friendPictures.forEach(async friendPicture => {
+                    return await friendPictures.xforEach(async friendPicture => {
                         const friendFaceFileName = __dirname + '/' + fatherDirectory + '/' + friend + '/' + friendPicture;
                         return await faceHelpers.addPersonFace(friendFaceFileName, personId, personGroupId).then(async result => {
                             personGroupArr['people'][friend]['faceIds'].push(result);
