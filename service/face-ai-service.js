@@ -2,6 +2,8 @@
 // Object.defineProperty(exports, "__esModule", { value: true });
 const fileHelpers = require("./fileHelpers");
 const faceHelpers = require("./FaceHelpers");
+const updateStudent = require("../connect-db/students/select");
+const checkExistStudent = require("../connect-db/students/select");
 
 async function detectFaceWithAttributes(inputImgPath) {
     await faceHelpers.detectFaceWithAttributes(inputImgPath)
@@ -25,21 +27,25 @@ async function createPersonGroup(personGroupId, fatherDirectory) {
             await friends.forEach(async friend => {
                 personGroupArr['people'][friend] = [];
                 return await faceHelpers.createPerson(personGroupId, friend).then(async result => {
-                    // console.log("Result PersonId:");
-                    // console.log(result);
-                    personGroupArr['people'][friend]['personId'] = result;
+                    console.log("Result PersonId:");
+                    console.log(result);
+                    // Update PersonId to local DB
+                   await updatePersonId(friend, result.personId);
+                    // create Array result
+                    personGroupArr['people'][friend]['personId'] = result.personId;
                     personGroupArr['people'][friend]['faceIds'] = [];
                     const personId = result;
                     let faceIdArr = [];
                     console.log(`Created personId: ${result} for person: ${friend}`);
                     const friendPictures = fileHelpers.getFriendPictures(fatherDirectory, friend);
-                    return await friendPictures.xforEach(async friendPicture => {
+                    return await friendPictures.forEach(async friendPicture => {
                         const friendFaceFileName = __dirname + '/' + fatherDirectory + '/' + friend + '/' + friendPicture;
                         return await faceHelpers.addPersonFace(friendFaceFileName, personId, personGroupId).then(async result => {
                             personGroupArr['people'][friend]['faceIds'].push(result);
                             console.log(`For personId: ${result} person: ${friend} added face: ${friendPicture} got persistedFaceId: ${result}`);
                             faceIdArr.concat(result);
                             console.log(personGroupArr);
+
                             return result;
                         });
                     });
@@ -61,7 +67,7 @@ async function trainPersonGroup(personGroupId) {
 async function detectFace(personGroupId, inputImgPath) {
     await faceHelpers.detectFace(inputImgPath).then(faceId => {
         faceHelpers.identifyPerson(personGroupId, faceId).then(result => {
-            console.log('Input recognized as: ' + result);
+            console.log('Input recognized as: ' + result + 'FaceID: '+ faceId);
         });
     });
 }
@@ -117,6 +123,23 @@ async function createSinglePerson(personGroupId, friend, fatherDirectory) {
                 return result;
             });
         });
+    });
+}
+
+async function updatePersonId(studentId, personId){
+    let checkResult = await checkExistStudent.checkExist(studentId);
+    console.log("StudentId: "+ studentId);
+    console.log(checkResult);
+    await updateStudent.update("'"+studentId+"'", "person_id = " + "'"+personId+"'").then(result => {
+        console.log(result);
+        if(result.affectedRows && result.affectedRows == 1) {
+            return response(200, "Update Successfully!", {
+                id: id
+            });
+        }
+    }).catch(err => {
+        console.log(err);
+        return response(500, "Errors", [err]);
     });
 }
 module.exports = {

@@ -19,16 +19,14 @@ router.post('/:id', async (req, res) => {
         await fileHelpers.setFriendPictures("Data", id, file);
     }
     await faceAiService.createSinglePerson("car1", id, "Data");
-    // images.forEach(async file => {
-        
-    // });
+    await faceAiService.trainPersonGroup("car1");
     
     return information;
     // let converted = converterObjectToRecord.convertForUpdate(information);
 
     // updateStudent.update("'"+id+"'", converted).then(result => {
     //     if(result.affectedRows && result.affectedRows == 1) {
-    //         return res.json(response(200, "Upd   ate Successfully!", {
+    //         return res.json(response(200, "Update Successfully!", {
     //             id: id
     //         }));
     //     }

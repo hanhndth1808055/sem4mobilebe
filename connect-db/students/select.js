@@ -76,10 +76,30 @@ async function update(id, information) {
     }
 }
 
+
+async function checkExist(studentId){
+    try {
+        let db = await connection.connection();
+        return new Promise((resolve, reject)=>{
+            let query = "SELECT EXISTS(SELECT * FROM student WHERE id='"+studentId+"')";
+            console.log(query);
+            db.query(query, (err, results)=>{
+                if(err) reject(err);
+                console.log(results);
+                let objResult = JSON.parse(JSON.stringify(results))[0];
+                resolve(Object.entries(objResult)[0][1]);
+            });
+        });
+    } catch (error) {
+        console.log(error);
+    }
+}
+
 module.exports = {
     select: select,
     selectAll: selectAll,
     create: create,
     remove: remove,
-    update: update
+    update: update,
+    checkExist: checkExist
 }
