@@ -4,6 +4,7 @@ const fileHelpers = require("./fileHelpers");
 const faceHelpers = require("./FaceHelpers");
 const updateStudent = require("../connect-db/students/select");
 const checkExistStudent = require("../connect-db/students/select");
+const response = require("../model/response");
 
 async function detectFaceWithAttributes(inputImgPath) {
     await faceHelpers.detectFaceWithAttributes(inputImgPath)
@@ -30,7 +31,7 @@ async function createPersonGroup(personGroupId, fatherDirectory) {
                     console.log("Result PersonId:");
                     console.log(result);
                     // Update PersonId to local DB
-                //    await updatePersonId(friend, result.personId);
+                   await updatePersonId(friend, result.personId);
                     // create Array result
                     personGroupArr['people'][friend]['personId'] = result.personId;
                     personGroupArr['people'][friend]['faceIds'] = [];
@@ -128,10 +129,12 @@ async function createSinglePerson(personGroupId, friend, fatherDirectory) {
 
 async function updatePersonId(studentId, personId){
     let checkResult = await checkExistStudent.checkExist(studentId);
-    console.log("StudentId: "+ studentId);
-    console.log(checkResult);
+    // console.log("StudentId: "+ studentId);
+    // console.log(checkResult);
+    console.log("1");
     await updateStudent.update("'"+studentId+"'", "person_id = " + "'"+personId+"'").then(result => {
-        console.log(result);
+        // console.log(result);
+        console.log("2");
         if(result.affectedRows && result.affectedRows == 1) {
             return response(200, "Update Successfully!", {
                 id: id
