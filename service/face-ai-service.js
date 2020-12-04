@@ -30,7 +30,7 @@ async function createPersonGroup(personGroupId, fatherDirectory) {
                     console.log("Result PersonId:");
                     console.log(result);
                     // Update PersonId to local DB
-                   await updatePersonId(friend, result.personId);
+                //    await updatePersonId(friend, result.personId);
                     // create Array result
                     personGroupArr['people'][friend]['personId'] = result.personId;
                     personGroupArr['people'][friend]['faceIds'] = [];
