@@ -3,6 +3,7 @@
 const fileHelpers = require("./fileHelpers");
 const faceHelpers = require("./FaceHelpers");
 const updateStudent = require("../connect-db/students/select");
+const updateCheckInRecords = require("../connect-db/check_in_records/select");
 const checkExistStudent = require("../connect-db/students/select");
 const response = require("../model/response");
 
@@ -25,15 +26,15 @@ async function createPersonGroup(personGroupId, fatherDirectory) {
             let personGroupArr = [];
             personGroupArr['personGroupId'] = personGroupId;
             personGroupArr['people'] = [];
-            await friends.forEach(async friend => {
+            return await friends.forEach(async friend => {
                 personGroupArr['people'][friend] = [];
                 return await faceHelpers.createPerson(personGroupId, friend).then(async result => {
                     console.log("Result PersonId:");
-                    console.log(result);
+                    let personIdString = JSON.parse(result).personId;
                     // Update PersonId to local DB
-                   await updatePersonId(friend, result.personId);
+                   await updatePersonId(friend, personIdString);
                     // create Array result
-                    personGroupArr['people'][friend]['personId'] = result.personId;
+                    personGroupArr['people'][friend]['personId'] = JSON.parse(result).personId;
                     personGroupArr['people'][friend]['faceIds'] = [];
                     const personId = result;
                     let faceIdArr = [];
@@ -45,7 +46,7 @@ async function createPersonGroup(personGroupId, fatherDirectory) {
                             personGroupArr['people'][friend]['faceIds'].push(result);
                             console.log(`For personId: ${result} person: ${friend} added face: ${friendPicture} got persistedFaceId: ${result}`);
                             faceIdArr.concat(result);
-                            console.log(personGroupArr);
+                            // console.log(personGroupArr);
 
                             return result;
                         });
@@ -66,9 +67,26 @@ async function trainPersonGroup(personGroupId) {
 }
 // // Step 3: Detecting and identifying a person
 async function detectFace(personGroupId, inputImgPath) {
-    await faceHelpers.detectFace(inputImgPath).then(faceId => {
-        faceHelpers.identifyPerson(personGroupId, faceId).then(result => {
-            console.log('Input recognized as: ' + result + 'FaceID: '+ faceId);
+    console.log("detectFace");
+    return await faceHelpers.detectFace(inputImgPath).then(faceId => {
+        return faceHelpers.identifyPerson(personGroupId, faceId).then(async result => {
+            // console.log('Input recognized as: ' + result + 'FaceID: '+ faceId);
+            let personId = JSON.parse(result)[0].candidates[0].personId;
+            let student = await updateStudent.select("person_id = "+ "'"+personId+"'");
+            student = JSON.parse(JSON.stringify(student));
+            // console.log(student[0].id);
+
+            return await updateCheckInRecords.create("student_id, status", "'"+student[0].id+"', 1").then(res => {
+                return response(200, "Checked in Successfully!", {
+                    id: student[0].id,
+                    check_in_records: res
+                });
+            }).catch(err => {
+                return response(500, "Checked in Unsuccessfully!", {
+                    id: student[0].id,
+                    check_in_records: err
+                });
+            });;
         });
     });
 }
@@ -98,6 +116,23 @@ async function showAllPersonGroup() {
         }
     });
 }
+
+async function showAPersonGroup(personGroupId) {
+    return await faceHelpers.showAPersonGroup(personGroupId).then(result => {
+        let response = JSON.parse(result);
+        if (response.personGroupId && response.personGroupId == personGroupId) {
+            console.log('Group exists!');
+            return true;
+        } else if (response.errors){
+            console.log('Error');
+            return false;
+        }else{
+            console.log('Error');
+            return false;
+        }
+    });
+}
+
 
 async function createSinglePerson(personGroupId, friend, fatherDirectory) {
     if(!fatherDirectory || fatherDirectory == '') fatherDirectory = 'Data';
@@ -131,13 +166,13 @@ async function updatePersonId(studentId, personId){
     let checkResult = await checkExistStudent.checkExist(studentId);
     // console.log("StudentId: "+ studentId);
     // console.log(checkResult);
-    console.log("1");
+    // console.log("1");
     await updateStudent.update("'"+studentId+"'", "person_id = " + "'"+personId+"'").then(result => {
         // console.log(result);
-        console.log("2");
+        // console.log("2");
         if(result.affectedRows && result.affectedRows == 1) {
             return response(200, "Update Successfully!", {
-                id: id
+                id: studentId
             });
         }
     }).catch(err => {
@@ -152,5 +187,6 @@ module.exports = {
     detectFace: detectFace,
     deletePersonGroup: deletePersonGroup,
     showAllPersonGroup: showAllPersonGroup,
-    createSinglePerson: createSinglePerson
+    createSinglePerson: createSinglePerson,
+    showAPersonGroup: showAPersonGroup
 }

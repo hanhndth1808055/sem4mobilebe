@@ -37,3 +37,17 @@ For personId: {"persistedFaceId":"2d1fc3f6-2957-489b-a77b-0428fea9077a"} person:
       faceIds: [Array] ],
     Trump: [ personId: '{"personId":"2a9e3863-a82b-4836-bf4d-ce38bdc6a407"}',
       faceIds: [Array] ] ] ]
+
+
+      [
+        {
+          "faceId":"d3895778-915d-43f3-b6c0-72382e8a4da1",
+          "candidates":
+          [
+            {
+              "personId":"86c1674d-5f39-4d20-b1bf-8b3d25efa6bb",
+              "confidence":0.8055
+            }
+          ]
+        }
+      ]

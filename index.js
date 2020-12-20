@@ -8,6 +8,7 @@ const fileUpload = require('express-fileupload');
 const createStudent = require("./routes/student/create-student");
 const updateStudent = require("./routes/student/update-student");
 const updateStudentFace = require("./routes/student/update-student-face");
+const trainCarGroup = require("./routes/student/train-car-group");
 
 var corsOptions = {
   origin: "*"
@@ -29,6 +30,7 @@ app.use('/create-student', createStudent);
 app.use('/update-student', updateStudent);
 
 app.use('/update-student-face', updateStudentFace);
+app.use('/train-car-group', trainCarGroup);
 
 app.get("/", (req, res) => {
   res.json('Welcome to FATSM Back-end');

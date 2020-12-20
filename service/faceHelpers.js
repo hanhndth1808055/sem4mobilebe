@@ -187,6 +187,27 @@ function showAllPersonGroup() {
     return promise;
 }
 exports.showAllPersonGroup = showAllPersonGroup;
+
+// Get A Person Group
+function showAPersonGroup(personGroupId) {
+    const promise = new Promise((resolve, reject) => {
+        const requestOptions = getRequestOptions();
+        // requestOptions.body = fileHelpers.readImage(personFile);
+        const uri = config_1.config.face.endPoint + '/persongroups/'+personGroupId+'?returnRecognitionModel=false';
+        request.get(uri, requestOptions, (err, response, body) => {
+            if (err) {
+                reject(false);
+            }
+            else {
+                resolve(body);
+            }
+        });
+    });
+    return promise;
+}
+exports.showAPersonGroup = showAPersonGroup;
+
+
 function getRequestOptions() {
     return {
         headers: {
@@ -195,3 +216,4 @@ function getRequestOptions() {
         }
     };
 }
+
