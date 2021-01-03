@@ -1,7 +1,7 @@
 // "use strict";
 // Object.defineProperty(exports, "__esModule", { value: true });
 const fileHelpers = require("./fileHelpers");
-const faceHelpers = require("./FaceHelpers");
+const faceHelpers = require("./faceHelpers");
 const updateStudent = require("../connect-db/students/select");
 const updateCheckInRecords = require("../connect-db/check_in_records/select");
 const checkExistStudent = require("../connect-db/students/select");
