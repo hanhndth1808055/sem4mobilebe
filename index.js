@@ -9,6 +9,7 @@ const createStudent = require("./routes/student/create-student");
 const updateStudent = require("./routes/student/update-student");
 const updateStudentFace = require("./routes/student/update-student-face");
 const trainCarGroup = require("./routes/student/train-car-group");
+const faceRecognize = require("./routes/student/face-recognize");
 
 var corsOptions = {
   origin: "*"
@@ -31,6 +32,7 @@ app.use('/update-student', updateStudent);
 
 app.use('/update-student-face', updateStudentFace);
 app.use('/train-car-group', trainCarGroup);
+app.use('/face-recognize', faceRecognize);
 
 app.get("/", (req, res) => {
   res.json('Welcome to FATSM Back-end');
