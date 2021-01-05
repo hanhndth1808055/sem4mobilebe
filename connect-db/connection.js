@@ -1,31 +1,26 @@
-const mysql = require('mysql');
-
-const con = mysql.createConnection({
-    host: "localhost",
-    port: 3306,
-    user: "root",
-    password: "dENvAU06@)@)",
-    database: "sem4"
+const mariadb = require('mariadb');
+const pool = mariadb.createPool({
+    host: 'localhost', 
+    user: 'root', 
+    password: 'dENvAU06@)@)', 
+    port: 3307, 
+    database: 'sem4'
 });
 
-async function connection() {
-    return await new Promise((resolve, reject) => {
-        if (con.state === 'disconnected') {
-            con.connect((err) => {
-                if (err) reject(err);
-                resolve(con);
-            });
-        } else if (con.state === 'authenticated') {
-            resolve(con);
-        }
-    });
+async function connect(query) {
+  let conn;
+  try {
+	conn = await pool.getConnection();
+	// const rows = await conn.query("SELECT 1 as val");
+	// console.log(rows); //[ {val: 1}, meta: ... ]
+	const res = await conn.query(query, [1, "mariadb"]);
+  // console.log(res); // { affectedRows: 1, insertId: 1, warningStatus: 0 }
+  return res;
+  } catch (err) {
+  console.log(err);
+  } finally {
+	if (conn) conn.end();
+  }
 }
 
-function closeSession() {
-    return con.end;
-}
-
-module.exports = {
-    connection: connection,
-    closeSession: closeSession
-}
+module.exports = connect;
