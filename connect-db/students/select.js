@@ -61,7 +61,6 @@ async function update(id, information) {
     try {
         let query = "UPDATE student SET " + information + " WHERE id=" + id;
         return await connection(query).then(result => {
-            
             return result;
         }).catch(err => {
             console.log(err);
