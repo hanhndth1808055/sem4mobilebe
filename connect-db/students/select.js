@@ -17,7 +17,7 @@ async function selectAll() {
     try {
         let query = "SELECT * FROM student";
         return await connection(query).then(result => {
-            // console.log(result);
+            
             return JSON.parse(JSON.stringify(result));
         }).catch(err => {
             console.log(err);
@@ -31,7 +31,7 @@ async function create(schema, information) {
     try {
         let query = "INSERT INTO student (" + schema + ")" + " VALUE (" + information + ")";
         return await connection(query).then(result => {
-            // console.log(result);
+            
             return result;
         }).catch(err => {
             console.log(err);
@@ -47,7 +47,7 @@ async function remove(id) {
     try {
         let query = "DELETE FROM student WHERE id=" + id;
         return await connection(query).then(result => {
-            // console.log(result);
+            
             return result;
         }).catch(err => {
             console.log(err);
@@ -61,7 +61,7 @@ async function update(id, information) {
     try {
         let query = "UPDATE student SET " + information + " WHERE id=" + id;
         return await connection(query).then(result => {
-            // console.log(result);
+            
             return result;
         }).catch(err => {
             console.log(err);
