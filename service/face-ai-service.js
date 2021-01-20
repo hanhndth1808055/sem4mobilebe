@@ -6,6 +6,15 @@ const updateStudent = require("../connect-db/students/select");
 const updateCheckInRecords = require("../connect-db/check_in_records/select");
 const checkExistStudent = require("../connect-db/students/select");
 const response = require("../model/response");
+const activeMQService = require("./activemq-service");
+
+
+var Stomp = require('stomp-client');
+var http = require('http');
+var request = require('request');
+var destination = '/queue/someQueueName';
+var express = require('express');
+var app = express();
 
 async function detectFaceWithAttributes(inputImgPath) {
     await faceHelpers.detectFaceWithAttributes(inputImgPath)
@@ -71,22 +80,35 @@ async function detectFace(personGroupId, inputImgPath) {
     return await faceHelpers.detectFace(inputImgPath).then(faceId => {
         return faceHelpers.identifyPerson(personGroupId, faceId).then(async result => {
             // console.log('Input recognized as: ' + result + 'FaceID: '+ faceId);
-            let personId = JSON.parse(result)[0].candidates[0].personId;
-            let student = await updateStudent.select("person_id = "+ "'"+personId+"'");
-            student = JSON.parse(JSON.stringify(student));
-            // console.log(student[0].id);
-
-            return await updateCheckInRecords.create("student_id, status", "'"+student[0].id+"', 1").then(res => {
-                return response(200, "Checked in Successfully!", {
-                    id: student[0].id,
-                    check_in_records: res
+            // console.log(result);
+            if(JSON.parse(result)[0].candidates[0]) {
+                let personId = JSON.parse(result)[0].candidates[0].personId;
+                let student = await updateStudent.select("person_id = "+ "'"+personId+"'");
+                student = JSON.parse(JSON.stringify(student));
+                // console.log(student[0].id);
+    
+                return await updateCheckInRecords.create("student_id, status", "'"+student[0].id+"', 1").then(async res => {
+                    console.log(res);
+                    let record = await updateCheckInRecords.select("id = "  + JSON.parse(JSON.stringify(res)).insertId);
+                    // console.log(JSON.stringify(record));
+                    await sendCheckInRecordToActiveMQ(record);
+                    return response(200, "Checked in Successfully!", {
+                        id: student[0].id,
+                        check_in_records: res
+                    });
+                }).catch(err => {
+                    console.log(err);
+                    return response(400, "Checked in Unsuccessfully!", {
+                        id: student[0].id,
+                        check_in_records: err
+                    });
                 });
-            }).catch(err => {
-                return response(500, "Checked in Unsuccessfully!", {
-                    id: student[0].id,
-                    check_in_records: err
+            } else {
+                return response(400, "Checked in Unsuccessfully!", {
+                    id: "",
+                    check_in_records: "Errors - Face not found!"
                 });
-            });;
+            }
         });
     });
 }
@@ -180,6 +202,12 @@ async function updatePersonId(studentId, personId){
         return response(500, "Errors", [err]);
     });
 }
+async function sendCheckInRecordToActiveMQ(contentToSend) {
+    let object = JSON.parse(JSON.stringify(contentToSend));
+    console.log(JSON.parse(JSON.stringify(contentToSend)));
+    activeMQService.main(object);
+}
+
 module.exports = {
     detectFaceWithAttributes: detectFaceWithAttributes,
     createPersonGroup: createPersonGroup,

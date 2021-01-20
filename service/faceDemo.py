@@ -3,8 +3,8 @@ import sys
 import time
 import requests
 from datetime import datetime
-cascPath = "/home/pi/opencv/data/haarcascades/haarcascade_frontalface_default.xml"
-# cascPath = "D:\setup\opencv\opencv\sources\data\haarcascades\haarcascade_frontalface_default.xml"
+# cascPath = "/home/pi/opencv/data/haarcascades/haarcascade_frontalface_default.xml"
+cascPath = "D:\setup\opencv\opencv\sources\data\haarcascades\haarcascade_frontalface_default.xml"
 
 faceCascade = cv2.CascadeClassifier(cascPath)
 

@@ -3,13 +3,13 @@ const app = express();
 const cors = require("cors");
 const bodyParser = require("body-parser");
 const fileUpload = require('express-fileupload');
-
 //routes
 const createStudent = require("./routes/student/create-student");
 const updateStudent = require("./routes/student/update-student");
 const updateStudentFace = require("./routes/student/update-student-face");
 const trainCarGroup = require("./routes/student/train-car-group");
 const faceRecognize = require("./routes/student/face-recognize");
+const studentFaceInsert = require("./routes/student/student-face-insert");
 
 var corsOptions = {
   origin: "*"
@@ -33,6 +33,7 @@ app.use('/update-student', updateStudent);
 app.use('/update-student-face', updateStudentFace);
 app.use('/train-car-group', trainCarGroup);
 app.use('/face-recognize', faceRecognize);
+app.use('/student-face-insert', studentFaceInsert);
 
 app.get("/", (req, res) => {
   res.json('Welcome to FATSM Back-end');
