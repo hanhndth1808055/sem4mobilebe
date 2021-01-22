@@ -76,13 +76,15 @@ async function detectFace(personGroupId, inputImgPath) {
             student = JSON.parse(JSON.stringify(student));
             // console.log(student[0].id);
 
-            return await updateCheckInRecords.create("student_id, status", "'"+student[0].id+"', 1").then(res => {
-                return response(200, "Checked in Successfully!", {
+            return await updateCheckInRecords.create("student_id, status", "'"+student[0].id+"', 2").then(res => {
+                console.log(res);
+
+                return response(200, "Checked out Successfully!", {
                     id: student[0].id,
                     check_in_records: res
                 });
             }).catch(err => {
-                return response(500, "Checked in Unsuccessfully!", {
+                return response(400, "Checked out Unsuccessfully!", {
                     id: student[0].id,
                     check_in_records: err
                 });
