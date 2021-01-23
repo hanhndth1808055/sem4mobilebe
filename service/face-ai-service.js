@@ -104,7 +104,7 @@ async function detectFace(personGroupId, inputImgPath) {
                     let notYetCheckIn = await updateCheckInRecords.notYetCheckIn(student[0].id);
                     if(notYetCheckIn) {
                         return await updateCheckInRecords.create("student_id, status", "'" + student[0].id + "', 1").then(async res => {
-                            console.log(res);
+                            // console.log(res);
                             let record = await updateCheckInRecords.select("id = " + JSON.parse(JSON.stringify(res)).insertId);
                             // console.log(JSON.stringify(record));
                             await sendCheckInRecordToActiveMQ(record);
