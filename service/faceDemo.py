@@ -42,7 +42,7 @@ while True:
             print(img_name+" written!")
             
             url = 'http://localhost:3333/face-recognize'
-            myobj = {'group': '29c101234',
+            myobj = {'group': 'car1',
                      'image': img_name}
 
             x = requests.post(url, data = myobj)

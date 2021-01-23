@@ -98,50 +98,52 @@ async function detectFace(personGroupId, inputImgPath) {
             if (JSON.parse(result) && JSON.parse(result)[0] && JSON.parse(result)[0].candidates[0]) {
                 let personId = JSON.parse(result)[0].candidates[0].personId;
                 let student = await updateStudent.select("person_id = " + "'" + personId + "'");
-                student = JSON.parse(JSON.stringify(student));
-                // console.log(student[0].id);
-                let notYetCheckIn = await updateCheckInRecords.notYetCheckIn(student[0].id);
-                if(notYetCheckIn) {
-                    return await updateCheckInRecords.create("student_id, status", "'" + student[0].id + "', 1").then(async res => {
-                        console.log(res);
-                        let record = await updateCheckInRecords.select("id = " + JSON.parse(JSON.stringify(res)).insertId);
-                        // console.log(JSON.stringify(record));
-                        await sendCheckInRecordToActiveMQ(record);
-                        return response(200, "Checked in Successfully!", {
-                            id: student[0].id,
-                            check_in_records: res
-                        });
-                    }).catch(err => {
-                        console.log(err);
-                        return response(400, "Checked in Unsuccessfully!", {
-                            id: student[0].id,
-                            check_in_records: err
-                        });
-                    });
-                } else {
-                    let checkedInAlready = await updateCheckInRecords.checkedInAlready(student[0].id);
-                    if(checkedInAlready) {
-                        return await updateCheckInRecords.create("student_id, status", "'" + student[0].id + "', 2").then(async res => {
+                if(student && student[0]) {
+                    student = JSON.parse(JSON.stringify(student));
+                    // console.log(student[0].id);
+                    let notYetCheckIn = await updateCheckInRecords.notYetCheckIn(student[0].id);
+                    if(notYetCheckIn) {
+                        return await updateCheckInRecords.create("student_id, status", "'" + student[0].id + "', 1").then(async res => {
                             console.log(res);
                             let record = await updateCheckInRecords.select("id = " + JSON.parse(JSON.stringify(res)).insertId);
                             // console.log(JSON.stringify(record));
                             await sendCheckInRecordToActiveMQ(record);
-                            return response(200, "Checked out Successfully!", {
+                            return response(200, "Checked in Successfully!", {
                                 id: student[0].id,
                                 check_in_records: res
                             });
                         }).catch(err => {
                             console.log(err);
-                            return response(400, "Checked out Unsuccessfully!", {
+                            return response(400, "Checked in Unsuccessfully!", {
                                 id: student[0].id,
                                 check_in_records: err
                             });
                         });
                     } else {
-                        console.log("It's not over 5 mins from last logged in");
-                        return response(200, "Checked in Already! Not more than 5 mins!", {
-                            id: student[0].id
-                        });
+                        let checkedInAlready = await updateCheckInRecords.checkedInAlready(student[0].id);
+                        if(checkedInAlready) {
+                            return await updateCheckInRecords.create("student_id, status", "'" + student[0].id + "', 2").then(async res => {
+                                console.log(res);
+                                let record = await updateCheckInRecords.select("id = " + JSON.parse(JSON.stringify(res)).insertId);
+                                // console.log(JSON.stringify(record));
+                                await sendCheckInRecordToActiveMQ(record);
+                                return response(200, "Checked out Successfully!", {
+                                    id: student[0].id,
+                                    check_in_records: res
+                                });
+                            }).catch(err => {
+                                console.log(err);
+                                return response(400, "Checked out Unsuccessfully!", {
+                                    id: student[0].id,
+                                    check_in_records: err
+                                });
+                            });
+                        } else {
+                            console.log("It's not over 5 mins from last logged in");
+                            return response(200, "Checked in Already! Not more than 5 mins!", {
+                                id: student[0].id
+                            });
+                        }
                     }
                 }
             } else {
