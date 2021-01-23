@@ -21,7 +21,7 @@ while True:
 
     gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
 
-    if seconds == "5" or seconds == "0":
+    if seconds == "2" or seconds == "0" or seconds == "4" or seconds == "6" or seconds == "8":
         faces = faceCascade.detectMultiScale(
             gray,
             scaleFactor=1.1,
@@ -42,7 +42,7 @@ while True:
             print(img_name+" written!")
             
             url = 'http://localhost:3333/face-recognize'
-            myobj = {'group': 'car1',
+            myobj = {'group': '29c101234',
                      'image': img_name}
 
             x = requests.post(url, data = myobj)

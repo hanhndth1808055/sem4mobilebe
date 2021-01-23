@@ -27,40 +27,54 @@ async function detectFaceWithAttributes(inputImgPath) {
 
 // Step 1: create personGroup here
 async function createPersonGroup(personGroupId, fatherDirectory) {
-    if(!fatherDirectory || fatherDirectory == '') fatherDirectory = 'Data';
+    if (!fatherDirectory || fatherDirectory == '') fatherDirectory = 'Data\\' + personGroupId;
     return await faceHelpers.createPersonGroup(personGroupId).then(async result => {
         if (result === personGroupId) {
             console.log('person group created');
             const friends = fileHelpers.getFriends(fatherDirectory);
+            // console.log(friends);
             let personGroupArr = [];
             personGroupArr['personGroupId'] = personGroupId;
             personGroupArr['people'] = [];
             return await friends.forEach(async friend => {
-                personGroupArr['people'][friend] = [];
-                return await faceHelpers.createPerson(personGroupId, friend).then(async result => {
-                    console.log("Result PersonId:");
-                    let personIdString = JSON.parse(result).personId;
-                    // Update PersonId to local DB
-                   await updatePersonId(friend, personIdString);
-                    // create Array result
-                    personGroupArr['people'][friend]['personId'] = JSON.parse(result).personId;
-                    personGroupArr['people'][friend]['faceIds'] = [];
-                    const personId = result;
-                    let faceIdArr = [];
-                    console.log(`Created personId: ${result} for person: ${friend}`);
-                    const friendPictures = fileHelpers.getFriendPictures(fatherDirectory, friend);
-                    return await friendPictures.forEach(async friendPicture => {
-                        const friendFaceFileName = __dirname + '/' + fatherDirectory + '/' + friend + '/' + friendPicture;
-                        return await faceHelpers.addPersonFace(friendFaceFileName, personId, personGroupId).then(async result => {
-                            personGroupArr['people'][friend]['faceIds'].push(result);
-                            console.log(`For personId: ${result} person: ${friend} added face: ${friendPicture} got persistedFaceId: ${result}`);
-                            faceIdArr.concat(result);
-                            // console.log(personGroupArr);
-
-                            return result;
+                // console.log(friend);
+                let checkResult = await checkExistStudent.checkExist(friend);
+                let checkExist = await checkExistStudent.checkExistWithPersonID(friend);
+                console.log("-------------------------------------");
+                if (JSON.stringify(checkResult) == "[]") {
+                    console.log("No Student ID found");
+                    return false;
+                } else if(JSON.stringify(checkExist) == "[]") {
+                    personGroupArr['people'][friend] = [];
+                    return await faceHelpers.createPerson(personGroupId, friend).then(async result => {
+                        // console.log(result);
+                        console.log("Result PersonId:");
+                        let personIdString = JSON.parse(result).personId;
+                        // Update PersonId to local DB
+                       await updatePersonId(friend, personIdString);
+                        // create Array result
+                        personGroupArr['people'][friend]['personId'] = JSON.parse(result).personId;
+                        personGroupArr['people'][friend]['faceIds'] = [];
+                        const personId = result;
+                        let faceIdArr = [];
+                        console.log(`Created personId: ${result} for person: ${friend}`);
+                        const friendPictures = fileHelpers.getFriendPictures(fatherDirectory, friend);
+                        return await friendPictures.forEach(async friendPicture => {
+                            const friendFaceFileName = __dirname + '/' + fatherDirectory + '/' + friend + '/' + friendPicture;
+                            return await faceHelpers.addPersonFace(friendFaceFileName, personId, personGroupId).then(async result => {
+                                personGroupArr['people'][friend]['faceIds'].push(result);
+                                console.log(`For personId: ${result} person: ${friend} added face: ${friendPicture} got persistedFaceId: ${result}`);
+                                faceIdArr.concat(result);
+                                // console.log(personGroupArr);
+    
+                                return result;
+                            });
                         });
                     });
-                });
+                } else {
+                    console.log("Student already has face registration!");
+                    return false;
+                }
             });
         }
     });
@@ -81,28 +95,55 @@ async function detectFace(personGroupId, inputImgPath) {
         return faceHelpers.identifyPerson(personGroupId, faceId).then(async result => {
             // console.log('Input recognized as: ' + result + 'FaceID: '+ faceId);
             // console.log(result);
-            if(JSON.parse(result)[0].candidates[0]) {
+            if (JSON.parse(result) && JSON.parse(result)[0] && JSON.parse(result)[0].candidates[0]) {
                 let personId = JSON.parse(result)[0].candidates[0].personId;
-                let student = await updateStudent.select("person_id = "+ "'"+personId+"'");
+                let student = await updateStudent.select("person_id = " + "'" + personId + "'");
                 student = JSON.parse(JSON.stringify(student));
                 // console.log(student[0].id);
-    
-                return await updateCheckInRecords.create("student_id, status", "'"+student[0].id+"', 1").then(async res => {
-                    console.log(res);
-                    let record = await updateCheckInRecords.select("id = "  + JSON.parse(JSON.stringify(res)).insertId);
-                    // console.log(JSON.stringify(record));
-                    await sendCheckInRecordToActiveMQ(record);
-                    return response(200, "Checked in Successfully!", {
-                        id: student[0].id,
-                        check_in_records: res
+                let notYetCheckIn = await updateCheckInRecords.notYetCheckIn(student[0].id);
+                if(notYetCheckIn) {
+                    return await updateCheckInRecords.create("student_id, status", "'" + student[0].id + "', 1").then(async res => {
+                        console.log(res);
+                        let record = await updateCheckInRecords.select("id = " + JSON.parse(JSON.stringify(res)).insertId);
+                        // console.log(JSON.stringify(record));
+                        await sendCheckInRecordToActiveMQ(record);
+                        return response(200, "Checked in Successfully!", {
+                            id: student[0].id,
+                            check_in_records: res
+                        });
+                    }).catch(err => {
+                        console.log(err);
+                        return response(400, "Checked in Unsuccessfully!", {
+                            id: student[0].id,
+                            check_in_records: err
+                        });
                     });
-                }).catch(err => {
-                    console.log(err);
-                    return response(400, "Checked in Unsuccessfully!", {
-                        id: student[0].id,
-                        check_in_records: err
-                    });
-                });
+                } else {
+                    let checkedInAlready = await updateCheckInRecords.checkedInAlready(student[0].id);
+                    if(checkedInAlready) {
+                        return await updateCheckInRecords.create("student_id, status", "'" + student[0].id + "', 2").then(async res => {
+                            console.log(res);
+                            let record = await updateCheckInRecords.select("id = " + JSON.parse(JSON.stringify(res)).insertId);
+                            // console.log(JSON.stringify(record));
+                            await sendCheckInRecordToActiveMQ(record);
+                            return response(200, "Checked out Successfully!", {
+                                id: student[0].id,
+                                check_in_records: res
+                            });
+                        }).catch(err => {
+                            console.log(err);
+                            return response(400, "Checked out Unsuccessfully!", {
+                                id: student[0].id,
+                                check_in_records: err
+                            });
+                        });
+                    } else {
+                        console.log("It's not over 5 mins from last logged in");
+                        return response(200, "Checked in Already! Not more than 5 mins!", {
+                            id: student[0].id
+                        });
+                    }
+                }
             } else {
                 return response(400, "Checked in Unsuccessfully!", {
                     id: "",
@@ -129,10 +170,10 @@ async function showAllPersonGroup() {
         if (result == "[]") {
             console.log('No available person group');
             return result;
-        } else if (result.length > 2){
+        } else if (result.length > 2) {
             console.log('Person group exist');
             return result;
-        }else{
+        } else {
             console.log('Error');
             return result;
         }
@@ -145,10 +186,10 @@ async function showAPersonGroup(personGroupId) {
         if (response.personGroupId && response.personGroupId == personGroupId) {
             console.log('Group exists!');
             return true;
-        } else if (response.errors){
+        } else if (response.errors) {
             console.log('Error');
             return false;
-        }else{
+        } else {
             console.log('Error');
             return false;
         }
@@ -157,11 +198,11 @@ async function showAPersonGroup(personGroupId) {
 
 
 async function createSinglePerson(personGroupId, friend, fatherDirectory) {
-    if(!fatherDirectory || fatherDirectory == '') fatherDirectory = 'Data';
+    if (!fatherDirectory || fatherDirectory == '') fatherDirectory = 'Data';
     let personGroupArr = [];
-            personGroupArr['personGroupId'] = personGroupId;
-            personGroupArr['people'] = [];
-            personGroupArr['people'][friend] = [];
+    personGroupArr['personGroupId'] = personGroupId;
+    personGroupArr['people'] = [];
+    personGroupArr['people'][friend] = [];
     return await faceHelpers.createPerson(personGroupId, friend).then(async result => {
         // console.log("Result PersonId:");
         // console.log(result);
@@ -184,15 +225,15 @@ async function createSinglePerson(personGroupId, friend, fatherDirectory) {
     });
 }
 
-async function updatePersonId(studentId, personId){
+async function updatePersonId(studentId, personId) {
     let checkResult = await checkExistStudent.checkExist(studentId);
     // console.log("StudentId: "+ studentId);
     // console.log(checkResult);
     // console.log("1");
-    await updateStudent.update("'"+studentId+"'", "person_id = " + "'"+personId+"'").then(result => {
+    await updateStudent.update("'" + studentId + "'", "person_id = " + "'" + personId + "'").then(result => {
         // console.log(result);
         // console.log("2");
-        if(result.affectedRows && result.affectedRows == 1) {
+        if (result.affectedRows && result.affectedRows == 1) {
             return response(200, "Update Successfully!", {
                 id: studentId
             });

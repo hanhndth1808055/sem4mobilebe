@@ -11,7 +11,10 @@ let main = (checkInArr) => {
             login: 'admin',
             passcode: 'Password@123'
         };
-    
+        console.log(checkInArr);
+        for (const item of checkInArr) {
+            delete item.sent_to_main_server;
+        }
         const contentToSend = JSON.stringify(checkInArr);
     
         const frame = client.send(sendHeaders);
