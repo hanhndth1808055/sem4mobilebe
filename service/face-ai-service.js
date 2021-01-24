@@ -39,7 +39,13 @@ async function createPersonGroup(personGroupId, fatherDirectory) {
             return await friends.forEach(async friend => {
                 // console.log(friend);
                 let checkResult = await checkExistStudent.checkExist(friend);
+                // console.log("~~~~");
+                // console.log(checkResult);
+                // console.log("~~~~");
                 let checkExist = await checkExistStudent.checkExistWithPersonID(friend);
+                // console.log("!!!");
+                // console.log(checkExist);
+                // console.log("!!!");
                 console.log("-------------------------------------");
                 if (JSON.stringify(checkResult) == "[]") {
                     console.log("No Student ID found");

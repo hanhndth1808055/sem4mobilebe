@@ -3,7 +3,9 @@ const connection = require("../connection.js");
 async function select(conditional) {
     try {
         let query = "SELECT * FROM student WHERE " + conditional;
-        return await connection(query).then(result => {
+        return await connection(query).then(async result => {
+            // console.log("ABCDEEEEEE");
+            // console.log(result);
             return JSON.parse(JSON.stringify(result));
         }).catch(err => {
             console.log(err);
@@ -13,10 +15,10 @@ async function select(conditional) {
     }
 }
 
-async function selectAll() {
+ async function selectAll() {
     try {
         let query = "SELECT * FROM student";
-        return await connection(query).then(result => {
+        return await connection(query).then(async result => {
             
             return JSON.parse(JSON.stringify(result));
         }).catch(err => {
@@ -74,6 +76,7 @@ async function checkExist(studentId){
     try {
         let query = "SELECT * FROM student WHERE id='"+studentId+"'";
         return await connection(query).then(results => {
+            // console.log(results);
             return JSON.parse(JSON.stringify(results));
         }).catch(err => {
             console.log(err);
@@ -85,7 +88,7 @@ async function checkExist(studentId){
 
 async function checkExistWithPersonID(studentId){
     try {
-        let query = "SELECT * FROM student WHERE id='"+studentId+"' AND person_id IS NULL";
+        let query = "SELECT * FROM student WHERE id='"+studentId+"' AND person_id IS NOT NULL";
         return await connection(query).then(results => {
             // console.log(JSON.parse(JSON.stringify(results)));
             return JSON.parse(JSON.stringify(results));

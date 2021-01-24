@@ -45,6 +45,9 @@ router.post('/', async (req, res) => {
             }
             await trainPersonGroup(carid);
         }
+        return res.json(response(200, "Connected!!", {
+            information: information
+        }));
     }
     return res.json(response(200, "Connected!!", {
         information: information
@@ -73,6 +76,7 @@ const trainPersonGroup = async (groupName) => {
     for (const file of fileList) {
         await fs.remove(file);
     }
+    return true;
 }
 
 module.exports = router;
