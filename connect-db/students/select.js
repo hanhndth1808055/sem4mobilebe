@@ -72,8 +72,22 @@ async function update(id, information) {
 
 async function checkExist(studentId){
     try {
-        let query = "SELECT EXISTS(SELECT * FROM student WHERE id='"+studentId+"')";
+        let query = "SELECT * FROM student WHERE id='"+studentId+"'";
         return await connection(query).then(results => {
+            return JSON.parse(JSON.stringify(results));
+        }).catch(err => {
+            console.log(err);
+        });
+    } catch (error) {
+        console.log(error);
+    }
+}
+
+async function checkExistWithPersonID(studentId){
+    try {
+        let query = "SELECT * FROM student WHERE id='"+studentId+"' AND person_id IS NULL";
+        return await connection(query).then(results => {
+            // console.log(JSON.parse(JSON.stringify(results)));
             return JSON.parse(JSON.stringify(results));
         }).catch(err => {
             console.log(err);
@@ -89,5 +103,6 @@ module.exports = {
     create: create,
     remove: remove,
     update: update,
-    checkExist: checkExist
+    checkExist: checkExist,
+    checkExistWithPersonID: checkExistWithPersonID
 }
