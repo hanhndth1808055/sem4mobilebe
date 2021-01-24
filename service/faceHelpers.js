@@ -117,7 +117,10 @@ function detectFace(fileName) {
         };
         const uri = config_1.config.face.endPoint + "/detect?" + querystring.stringify(params);
         request.post(uri, requestOptions, (err, response, body) => {
-            resolve(JSON.parse(body)[0].faceId);
+            if (err) reject(err);
+            if(JSON.parse(body)[0]) {
+                resolve(JSON.parse(body)[0].faceId);
+            } else resolve(null);
         });
     });
     return promise;

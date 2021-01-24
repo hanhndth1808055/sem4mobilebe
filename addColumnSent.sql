@@ -1,0 +1,1 @@
+ALTER TABLE check_in_records ADD sent_to_main_server INTEGER DEFAULT 0;
