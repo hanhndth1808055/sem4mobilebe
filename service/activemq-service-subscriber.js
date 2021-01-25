@@ -46,6 +46,7 @@ async function synchronizeStudentPI(information) {
     console.log(typeof information);
     information.is_active = information.is_active.data[0];
     delete information.start_date;
+    delete information.images;
     let converted = converterObjectToRecord.converter(information);
     // console.log(converted);
     createStudent.create(converted.schema, converted.record).then(async result => {
