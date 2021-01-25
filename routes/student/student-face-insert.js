@@ -1,7 +1,7 @@
 const express = require("express");
 
 const router = express.Router();
-const updateStudent = require("../../connect-db/students/select");
+// const updateStudent = require("../../connect-db/students/select");
 const fs = require('fs-extra');
 const fetch = require('node-fetch');
 const request = require('request');
@@ -30,15 +30,15 @@ router.post('/', async (req, res) => {
     if (information && information.length > 0) {
         for (const item of information) {
             let carid = item.group.replace(/[^a-z0-9]/gi, '').toLowerCase();
-            let pathItem = path.join(__dirname, "./../../service/Data/") + carid + "\\"+item.student_id;
+            let pathItem = path.join(__dirname, "./../../service/Data/") + carid + "/"+item.student_id;
             console.log(pathItem);
             await fs.ensureDir(pathItem);
             if (item.pictures && item.pictures.length > 0) {
                 for (const picture of item.pictures) {
                     // console.log(picture);
                     // console.log(pathItem + "\\" + getFileName(picture));
-                    fileList.push(pathItem + "\\" + getFileName(picture));
-                    await download(picture, pathItem + "\\" + getFileName(picture), () => {
+                    fileList.push(pathItem + "/" + getFileName(picture));
+                    await download(picture, pathItem + "/" + getFileName(picture), () => {
                         console.log('✅ Done!')
                     });
                 }

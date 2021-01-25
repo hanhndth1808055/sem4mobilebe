@@ -14,6 +14,7 @@ var http = require('http');
 var request = require('request');
 var destination = '/queue/someQueueName';
 var express = require('express');
+const synchronizeStudentWithFace = require("./synchronize-student-with-face");
 var app = express();
 
 async function detectFaceWithAttributes(inputImgPath) {
@@ -27,7 +28,7 @@ async function detectFaceWithAttributes(inputImgPath) {
 
 // Step 1: create personGroup here
 async function createPersonGroup(personGroupId, fatherDirectory) {
-    if (!fatherDirectory || fatherDirectory == '') fatherDirectory = 'Data\\' + personGroupId;
+    if (!fatherDirectory || fatherDirectory == '') fatherDirectory = 'Data/' + personGroupId;
     return await faceHelpers.createPersonGroup(personGroupId).then(async result => {
         if (result === personGroupId) {
             console.log('person group created');
@@ -56,7 +57,8 @@ async function createPersonGroup(personGroupId, fatherDirectory) {
                         // console.log(result);
                         console.log("Result PersonId:");
                         let personIdString = JSON.parse(result).personId;
-                        // Update PersonId to local DB
+
+                        // Update PersonId to local DB and synchronize with PI
                        await updatePersonId(friend, personIdString);
                         // create Array result
                         personGroupArr['people'][friend]['personId'] = JSON.parse(result).personId;
@@ -100,7 +102,7 @@ async function detectFace(personGroupId, inputImgPath) {
     return await faceHelpers.detectFace(inputImgPath).then(faceId => {
         return faceHelpers.identifyPerson(personGroupId, faceId).then(async result => {
             // console.log('Input recognized as: ' + result + 'FaceID: '+ faceId);
-            // console.log(result);
+            console.log(result);
             if (JSON.parse(result) && JSON.parse(result)[0] && JSON.parse(result)[0].candidates[0]) {
                 let personId = JSON.parse(result)[0].candidates[0].personId;
                 let student = await updateStudent.select("person_id = " + "'" + personId + "'");
@@ -146,7 +148,7 @@ async function detectFace(personGroupId, inputImgPath) {
                             });
                         } else {
                             console.log("It's not over 5 mins from last logged in");
-                            return response(200, "Checked in Already! Not more than 5 mins!", {
+                            return response(400, "Checked in Already! Not more than 5 mins!", {
                                 id: student[0].id
                             });
                         }
@@ -234,14 +236,22 @@ async function createSinglePerson(personGroupId, friend, fatherDirectory) {
 }
 
 async function updatePersonId(studentId, personId) {
-    let checkResult = await checkExistStudent.checkExist(studentId);
+    
     // console.log("StudentId: "+ studentId);
     // console.log(checkResult);
     // console.log("1");
-    await updateStudent.update("'" + studentId + "'", "person_id = " + "'" + personId + "'").then(result => {
+    await updateStudent.update("'" + studentId + "'", "person_id = " + "'" + personId + "'").then(async result => {
         // console.log(result);
         // console.log("2");
         if (result.affectedRows && result.affectedRows == 1) {
+            let checkResult = await checkExistStudent.checkExist(studentId);
+            console.log(personId);
+            console.log(studentId);
+            if(checkResult[0]) {
+                delete checkResult[0].date_of_birth;
+                await synchronizeStudentWithFace.main(checkResult[0]);
+            }
+            
             return response(200, "Update Successfully!", {
                 id: studentId
             });

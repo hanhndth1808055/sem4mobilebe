@@ -20,7 +20,7 @@ async function faceRecognize(groupName, imageName) {
     if(!imageName) {
         imageName = "IMG_20200708_110428.jpg";
     }
-    // await faceService.trainPersonGroup(groupName).then(res => console.log(res));
+    await faceService.trainPersonGroup(groupName).then(res => console.log(res));
     return await faceService.detectFace(groupName, "./"+imageName).then(result => {
         // console.log(result);
         return result;
